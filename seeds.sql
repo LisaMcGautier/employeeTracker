@@ -29,22 +29,26 @@ INSERT INTO role (title, salary, department_id) VALUES ("Marketer", 60000, 5);
 
 -- inserts values into employee table --
 INSERT INTO employee (first_name, last_name, role_id) VALUES ("Mickey", "Mouse", 1);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Donald", "Duck", 2);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Roger", "Rabbit", 2);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Donald", "Duck", 2, 1);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Roger", "Rabbit", 2, 1);
+
 
 INSERT INTO employee (first_name, last_name, role_id) VALUES ("Minnie", "Mouse", 3);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Jessica", "Rabbit", 4);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Daisy", "Duck", 4);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Jessica", "Rabbit", 4, 4);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Daisy", "Duck", 4, 4);
+
 
 INSERT INTO employee (first_name, last_name, role_id) VALUES ("Bugs", "Bunny", 5);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Elmer", "Fudd", 6);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Daffy", "Duck", 6);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Elmer", "Fudd", 6, 7);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Daffy", "Duck", 6, 7);
+
 
 INSERT INTO employee (first_name, last_name, role_id) VALUES ("Luke", "Skywalker", 7);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Han", "Solo", 8);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Lando", "Calrissian", 8);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Han", "Solo", 8, 10);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Lando", "Calrissian", 8, 10);
+
 
 INSERT INTO employee (first_name, last_name, role_id) VALUES ("Hermione", "Granger", 9);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Harry", "Potter", 10);
-INSERT INTO employee (first_name, last_name, role_id) VALUES ("Ron", "Weasley", 10);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Harry", "Potter", 10, 13);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Ron", "Weasley", 10, 13);
 
