@@ -27,9 +27,11 @@ function promptUser() {
 
         "View all roles",
         "View all departments",
+
         "Add department",
         "Add role",
         "Add employee",
+        
         "Update employee role",
 
         // "Update employee manager",
@@ -81,10 +83,13 @@ function promptUser() {
 
 // FUNCTION TO VIEW ALL EMPLOYEES
 function viewAllEmployees() {
-    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, title, department, and salary DATA
-    connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary FROM employee	
+    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, title, department, salary, and manager DATA
+    // CONCAT (E2.first_name, ' ', E2.last_name) AS manager_name will display the manager ID as manager first name + manager last name
+    connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary,
+                        CONCAT (E2.first_name, ' ', E2.last_name) AS manager_name FROM employee	
                         INNER JOIN role ON role.id = employee.role_id 
-                        INNER JOIN department ON department.id = role.department_id;`, function (error, results) {
+                        INNER JOIN department ON department.id = role.department_id
+                        LEFT JOIN employee AS E2 ON E2.id = employee.manager_id;`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
@@ -135,7 +140,25 @@ function viewEmployeesByDepartment() {
     });
 }
 
-function viewEmployeesByManager() { }
+// FUNCTION TO VIEW EMPLOYEES BY MANAGER
+function viewEmployeesByManager() {
+    //     // SELECT ALL FROM employee; we will need to ACCESS the results(listOfDepartments) of the callback function
+    //     connection.query("SELECT * FROM employee", (error, listOfDepartments) => {
+    //         if (error) {
+    //             console.log(error);
+    //             connection.end();
+    //         } else {
+    //             // create an array to hold department names
+    //             const departmentNames = listOfDepartments.map((department) => department.name);
+    // inquirer.prompt([
+    //     // prompt user for manager to view
+    //     {
+    //         type: "list",
+    //         message: "Which manager's team would you like to view?",
+    //         choices: managerNames,
+    //         name: "managerName"
+    //     },
+}
 
 // FUNCTION TO VIEW ALL ROLES
 function viewAllRoles() {
