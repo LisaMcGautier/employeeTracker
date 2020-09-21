@@ -2,6 +2,7 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require('console.table');
 
+// CREATE A CONNECTION TO SQL DATABASE
 var connection = mysql.createConnection({
     host: "localhost",
 
@@ -16,9 +17,10 @@ var connection = mysql.createConnection({
     database: "EMPLOYEE_TRACKER"
 });
 
+// START CMS IN THE TERMINAL; PROMPT USER FOR ACTION TO BE EXECUTED
 function promptUser() {
     const options = [
-        "View all employees", // 0
+        "View all employees",
         "View all employees by department",
 
         // "View all employees by manager",
@@ -77,7 +79,9 @@ function promptUser() {
     })
 }
 
+// FUNCTION TO VIEW ALL EMPLOYEES
 function viewAllEmployees() {
+    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, title, department, and salary DATA
     connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary FROM employee	
                         INNER JOIN role ON role.id = employee.role_id 
                         INNER JOIN department ON department.id = role.department_id;`, function (error, results) {
@@ -86,24 +90,28 @@ function viewAllEmployees() {
             connection.end();
         } else {
             console.log("\n");
+            // LOG RESULTS TO THE CONSOLE
             console.table(results);
             console.log("\n");
+            // RETURN TO START; PROMPT USER FOR ACTION TO BE EXECUTED
             promptUser();
         }
     });
 }
 
+// FUNCTION TO VIEW EMPLOYEES BY DEPARTMENT
 function viewEmployeesByDepartment() {
-    // we will need to ACCESS the results of the callback function
+    // SELECT ALL FROM department; we will need to ACCESS the results(listOfDepartments) of the callback function
     connection.query("SELECT * FROM department", (error, listOfDepartments) => {
         if (error) {
             console.log(error);
             connection.end();
         } else {
-            // creates an array of the department names
+            // create an array to hold department names
             const departmentNames = listOfDepartments.map((department) => department.name);
 
             inquirer.prompt([
+                // prompt user for department to view
                 {
                     type: "list",
                     message: "Which department would you like to view?",
@@ -111,11 +119,13 @@ function viewEmployeesByDepartment() {
                     name: "departmentName"
                 },
             ]).then((response) => {
+                // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, and title DATA for the department chosen by user
                 connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title FROM employee 
                                     INNER JOIN role ON role.id = employee.role_id 
                                     INNER JOIN department ON department.id = role.department_id
                                   WHERE ?`, { name: response.departmentName }, (error, results) => {
                     console.log("\n");
+                    // DISPLAY results for user
                     console.table(results);
                     console.log("\n");
                     promptUser();
@@ -127,15 +137,17 @@ function viewEmployeesByDepartment() {
 
 function viewEmployeesByManager() { }
 
+// FUNCTION TO VIEW ALL ROLES
 function viewAllRoles() {
+    // JOIN role AND department TABLES TO COMBINE DATA AND RETURN role ID, title, and department name DATA for the role chosen by user
     connection.query(`SELECT role.id, role.title, department.name AS department, role.salary FROM role 
                             INNER JOIN department ON department.id = role.department_id`, function (error, results) {
-        // connection.query(`SELECT department.name AS department FROM department`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
         } else {
             console.log("\n");
+            // DISPLAY results for user
             console.table(results);
             console.log("\n");
             promptUser();
@@ -143,14 +155,16 @@ function viewAllRoles() {
     });
 }
 
+// FUNCTION TO VIEW ALL DEPARTMENTS
 function viewAllDepartments() {
+    // SELECT ALL FROM department
     connection.query(`SELECT * FROM department`, function (error, results) {
-        // connection.query(`SELECT department.name AS department FROM department`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
         } else {
             console.log("\n");
+            // DISPLAY results for user
             console.table(results);
             console.log("\n");
             promptUser();
@@ -158,7 +172,9 @@ function viewAllDepartments() {
     });
 }
 
+// FUNCTION TO ADD new DEPARTMENT
 function addDepartment() {
+    // PROMPT USER FOR name OF NEW DEPARTMENT
     inquirer.prompt([
         {
             type: "input",
@@ -166,6 +182,7 @@ function addDepartment() {
             name: "newDepartmentName",
         },
     ]).then((response) => {
+        // INSERT NEW department into department table
         connection.query(`INSERT INTO department SET ?`, { name: response.newDepartmentName }, (error, results) => {
             console.log("\n");
             console.log(`Added ${response.newDepartmentName} to the DEPARTMENT database`)
@@ -175,28 +192,32 @@ function addDepartment() {
     });
 }
 
+// FUNCTION TO ADD new ROLE
 function addRole() {
-    // we will need to ACCESS the results of the callback function
+    // SELECT ALL FROM department; we will need to ACCESS the results(listOfDepartments) of the callback function
     connection.query("SELECT * FROM department", (error, listOfDepartments) => {
         if (error) {
             console.log(error);
             connection.end();
         } else {
-            // creates an array of the department names
+            // create an array of the department names
             const departmentNames = listOfDepartments.map((department) => department.name);
 
             inquirer.prompt([
+                // prompt user for department that will house new role
                 {
                     type: "list",
                     message: "To which department should the new role belong?",
                     choices: departmentNames,
                     name: "departmentName"
                 },
+                // prompt user for title of new role
                 {
                     type: "input",
                     message: "What is the title for this role?",
                     name: "newRoleTitle",
                 },
+                // prompt user for salary of new role
                 {
                     type: "input",
                     message: "What is the salary for this role?",
@@ -206,6 +227,7 @@ function addRole() {
                 //find department_id that matches user's department choice
                 const department = listOfDepartments.find((department) => department.name == response.departmentName);
 
+                // INSERT NEW role into role table
                 connection.query(`INSERT INTO role SET ?`, { title: response.newRoleTitle, salary: response.newRoleSalary, department_id: department.id }, (error, results) => {
                     console.log("\n");
                     console.log(`Added ${response.newRoleTitle} to the ${department.name} department`)
@@ -217,26 +239,31 @@ function addRole() {
     });
 }
 
+// FUNCTION TO ADD new EMPLOYEE
 function addEmployee() {
-    // we will need to ACCESS the results of the callback function
+    // SELECT ALL FROM role; we will need to ACCESS the results(listOfRoles) of the callback function
     connection.query("SELECT * FROM role", (error, listOfRoles) => {
         if (error) {
             console.log(error);
             connection.end();
         } else {
-            // creates an array of the role titles
+            // create an array of the role titles
             const roleTitles = listOfRoles.map((role) => role.title);
+
             inquirer.prompt([
+                // prompt user for employee first name
                 {
                     type: "input",
                     message: "Enter the employee's first name",
                     name: "employeeFirst"
                 },
+                // prompt user for employee last name
                 {
                     type: "input",
                     message: "Enter the employee's last name",
                     name: "employeeLast"
                 },
+                // prompt user for employee title
                 {
                     type: "list",
                     message: "What is the title for this employee?",
@@ -246,7 +273,7 @@ function addEmployee() {
             ]).then((response) => {
                 //find role that matches user's title choice
                 const role = listOfRoles.find((role) => role.title == response.employeeRole);
-
+                // INSERT NEW employee into employee table
                 connection.query(`INSERT INTO employee SET ?`, { first_name: response.employeeFirst, last_name: response.employeeLast, role_id: role.id }, (error, results) => {
                     console.log("\n");
                     console.log(`Added ${response.employeeFirst} ${response.employeeLast} to the database`)
@@ -266,6 +293,7 @@ function updateRole() {
             console.log(error);
             connection.end();
         } else {
+            // DISPLAY results for user
             console.table(results);
 
             inquirer.prompt([
@@ -296,17 +324,23 @@ function updateRole() {
     });
 }
 
+function updateEmployeeManager() {
+
+}
+
+// FUNCTION TO DELETE DEPARTMENT
 function deleteDepartment() {
-    // we will need to ACCESS the results of the callback function
+    // SELECT ALL FROM department; we will need to ACCESS the results(listOfDepartments) of the callback function
     connection.query("SELECT * FROM department", (error, listOfDepartments) => {
         if (error) {
             console.log(error);
             connection.end();
         } else {
-            // creates an array of the department names
+            // create an array of the department names
             const departmentNames = listOfDepartments.map((department) => department.name);
 
             inquirer.prompt([
+                // prompt user for department to delete
                 {
                     type: "list",
                     message: "Which department would you like to delete?",
@@ -314,6 +348,7 @@ function deleteDepartment() {
                     name: "departmentName"
                 },
             ]).then((response) => {
+                // DELETE department FROM department table
                 connection.query(`DELETE FROM department WHERE ?`, { name: response.departmentName }, (error, results) => {
                     console.log("\n");
                     console.log(`Deleted department from the database`);
@@ -325,16 +360,19 @@ function deleteDepartment() {
     });
 }
 
+// FUNCTION TO DELETE ROLE
 function deleteRole() {
+    // SELECT ALL FROM role; we will need to ACCESS the results(listOfRoles) of the callback function
     connection.query("SELECT * FROM role", (error, listOfRoles) => {
         if (error) {
             console.log(error);
             connection.end();
         } else {
-            // creates an array of the department names
+            // create an array of the role titles
             const roleTitles = listOfRoles.map((role) => role.title);
 
             inquirer.prompt([
+                // prompt user for role to delete
                 {
                     type: "list",
                     message: "Which role would you like to delete?",
@@ -342,6 +380,7 @@ function deleteRole() {
                     name: "roleTitle"
                 },
             ]).then((response) => {
+                // DELETE role FROM role table
                 connection.query(`DELETE FROM role WHERE ?`, { title: response.roleTitle }, (error, results) => {
                     console.log("\n");
                     console.log(`Deleted role from the database`);
@@ -353,21 +392,26 @@ function deleteRole() {
     });
 }
 
+// FUNCTION TO DELETE EMPLOYEE
 function deleteEmployee() {
+    // SELECT employee ID number, first and lasdt names from employee table
     connection.query(`SELECT employee.id, employee.first_name, employee.last_name FROM employee`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
         } else {
+            // DISPLAY results for user
             console.table(results);
 
             inquirer.prompt([
+                // prompt user for ID number of employee to delete
                 {
                     type: "input",
                     message: "Enter id number for the employee you would like to delete.",
                     name: "employeeID"
                 },
             ]).then((response) => {
+                // DELETE employee FROM employee table
                 connection.query(`DELETE FROM employee WHERE ?`, {id: response.employeeID}, function (error, results) {
                     if (error) {
                         console.log(error);
@@ -384,12 +428,7 @@ function deleteEmployee() {
     });
 }
 
-// connection.connect(function (err) {
-//     if (err) throw err;
-//     console.log("connected as id " + connection.threadId);
-//     connection.end();
-// });
-
+// METHOD TO ESTABLISH CONNECTION  and CALL promptUser FUNCTION TO START APP IN TERMINAL OR THROW ERROR
 connection.connect(function (err) {
     if (err) throw err;
 
