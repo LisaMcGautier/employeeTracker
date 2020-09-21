@@ -5,6 +5,9 @@ No license selected
 
 A CLI application for viewing and editing employee information from a database.
 
+## Screencast
+https://drive.google.com/file/d/14eSm4lhiM99d9kneEexEnCAIf5zhZH2S/view
+
 ## Table of Contents
 
 * [Technologies](#technologies)
