@@ -6,7 +6,11 @@ No license selected
 A CLI application for viewing and editing employee information from a database.
 
 ## Screencast
+This video shows the basic functionality of the app:
 https://drive.google.com/file/d/14eSm4lhiM99d9kneEexEnCAIf5zhZH2S/view
+
+This video adds some additional manager features:
+https://drive.google.com/file/d/1D-KPFZ3romuRDWBoD7taiXVHMK464kNB/view
 
 ## Table of Contents
 
