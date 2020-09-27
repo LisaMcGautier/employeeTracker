@@ -23,7 +23,7 @@ function promptUser() {
         "View all employees",
         "View all employees by department",
 
-        // "View all employees by manager",
+        "View all employees by manager",
 
         "View all roles",
         "View all departments",
@@ -31,14 +31,15 @@ function promptUser() {
         "Add department",
         "Add role",
         "Add employee",
-        
-        "Update employee role",
 
-        // "Update employee manager",
+        "Update employee role",
+        "Update employee manager",
 
         "DELETE department",
         "DELETE role",
         "DELETE employee",
+
+        "View ALL department budgets",
 
         "EXIT"];
     inquirer.prompt([
@@ -53,30 +54,33 @@ function promptUser() {
             viewAllEmployees();
         } else if (response.choice == options[1]) {
             viewEmployeesByDepartment();
-            // } else if (response.choice == options[]) {
-            //     viewEmployeesByManager();
         } else if (response.choice == options[2]) {
-            viewAllRoles();
+            viewEmployeesByManager();
         } else if (response.choice == options[3]) {
-            viewAllDepartments();
+            viewAllRoles();
         } else if (response.choice == options[4]) {
-            addDepartment();
+            viewAllDepartments();
         } else if (response.choice == options[5]) {
-            addRole();
+            addDepartment();
         } else if (response.choice == options[6]) {
-            addEmployee();
+            addRole();
         } else if (response.choice == options[7]) {
-            updateRole();
-            // } else if (response.choice == options[]) {
-            //     updateEmployeeManager();
+            addEmployee();
         } else if (response.choice == options[8]) {
-            deleteDepartment();
+            updateRole();
         } else if (response.choice == options[9]) {
-            deleteRole();
+            updateEmployeeManager();
         } else if (response.choice == options[10]) {
-            deleteEmployee()
+            deleteDepartment();
         } else if (response.choice == options[11]) {
+            deleteRole();
+        } else if (response.choice == options[12]) {
+            deleteEmployee()
+        } else if (response.choice == options[13]) {
+            viewAllDepartmentBudgets()
+        } else if (response.choice == options[14]) {
             connection.end();
+
         }
     })
 }
@@ -89,7 +93,7 @@ function viewAllEmployees() {
                         CONCAT (E2.first_name, ' ', E2.last_name) AS manager_name FROM employee	
                         INNER JOIN role ON role.id = employee.role_id 
                         INNER JOIN department ON department.id = role.department_id
-                        LEFT JOIN employee AS E2 ON E2.id = employee.manager_id;`, function (error, results) {
+                        LEFT JOIN employee AS E2 ON E2.id = employee.manager_id`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
@@ -142,29 +146,49 @@ function viewEmployeesByDepartment() {
 
 // FUNCTION TO VIEW EMPLOYEES BY MANAGER
 function viewEmployeesByManager() {
-    //     // SELECT ALL FROM employee; we will need to ACCESS the results(listOfDepartments) of the callback function
-    //     connection.query("SELECT * FROM employee", (error, listOfDepartments) => {
-    //         if (error) {
-    //             console.log(error);
-    //             connection.end();
-    //         } else {
-    //             // create an array to hold department names
-    //             const departmentNames = listOfDepartments.map((department) => department.name);
-    // inquirer.prompt([
-    //     // prompt user for manager to view
-    //     {
-    //         type: "list",
-    //         message: "Which manager's team would you like to view?",
-    //         choices: managerNames,
-    //         name: "managerName"
-    //     },
+    // SELECT ALL FROM employee; we will need to ACCESS the results(listOfManagers) of the callback function
+    connection.query("SELECT id, CONCAT (first_name, ' ', last_name) AS manager_name FROM employee WHERE manager_id IS NULL", (error, listOfManagers) => {
+        if (error) {
+            console.log(error);
+            connection.end();
+        } else {
+            // create an array to hold manager names
+            const managerNames = listOfManagers.map((manager) => manager.manager_name);
+
+            inquirer.prompt([
+                // prompt user for name of manager to view
+                {
+                    type: "list",
+                    message: "Which manager's team would you like to view?",
+                    choices: managerNames,
+                    name: "managerName"
+                },
+
+            ]).then((response) => {
+                // find manager_id for the manager that matches user's choice
+                const manager = listOfManagers.find((manager) => manager.manager_name == response.managerName);
+
+                // SELECT employee id, employee first name and last name, department name, role.title FROM employee table
+                connection.query(`SELECT employee.id, employee.first_name, employee.last_name, department.name AS department, role.title FROM employee 
+                                    INNER JOIN role ON role.id = employee.role_id 
+                                    INNER JOIN department ON department.id = role.department_id
+                                WHERE ?`, { manager_id: manager.id }, (error, results) => {
+                    console.log("\n");
+                    // DISPLAY results for user
+                    console.table(results);
+                    console.log("\n");
+                    promptUser();
+                });
+            });
+        }
+    })
 }
 
 // FUNCTION TO VIEW ALL ROLES
 function viewAllRoles() {
     // JOIN role AND department TABLES TO COMBINE DATA AND RETURN role ID, title, and department name DATA for the role chosen by user
     connection.query(`SELECT role.id, role.title, department.name AS department, role.salary FROM role 
-                            INNER JOIN department ON department.id = role.department_id`, function (error, results) {
+                        INNER JOIN department ON department.id = role.department_id`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
@@ -308,10 +332,12 @@ function addEmployee() {
     });
 }
 
+// FUNCTION TO UPDATE EMPLOYEE ROLE
 function updateRole() {
+    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, role ID, title, and department DATA
     connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role_id, role.title, department.name AS department FROM employee	
                         INNER JOIN role ON role.id = employee.role_id 
-                        INNER JOIN department ON department.id = role.department_id;`, function (error, results) {
+                        INNER JOIN department ON department.id = role.department_id`, function (error, results) {
         if (error) {
             console.log(error);
             connection.end();
@@ -319,18 +345,22 @@ function updateRole() {
             // DISPLAY results for user
             console.table(results);
 
+            // prompt user for employee to be updated
             inquirer.prompt([
                 {
                     type: "input",
                     message: "Enter id number for the employee you would like to update.",
                     name: "employeeID"
                 },
+                // prompt user for updated role
                 {
                     type: "input",
                     message: "Enter role_id number for the employee's NEW role",
                     name: "roleID"
                 },
             ]).then((response) => {
+
+                // UPDATE employee table with new role ID for employee
                 connection.query(`UPDATE employee SET role_id = ? WHERE id = ?`, [response.roleID, response.employeeID], function (error, results) {
                     if (error) {
                         console.log(error);
@@ -348,7 +378,49 @@ function updateRole() {
 }
 
 function updateEmployeeManager() {
+    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN employee ID, first and last names, title, department, manager name and manager ID
+    // CONCAT (E2.first_name, ' ', E2.last_name) AS manager_name will display the manager ID as manager first name + manager last name
+    connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department,
+                        CONCAT (E2.first_name, ' ', E2.last_name) AS manager_name,  employee.manager_id FROM employee	
+                        INNER JOIN role ON role.id = employee.role_id 
+                        INNER JOIN department ON department.id = role.department_id
+                        LEFT JOIN employee AS E2 ON E2.id = employee.manager_id`, function (error, results) {
+        if (error) {
+            console.log(error);
+            connection.end();
+        } else {
+            // DISPLAY results for user
+            console.table(results);
 
+            // prompt user for employee to be updated
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "Enter id number for the employee you would like to update.",
+                    name: "employeeID"
+                },
+                // prompt user for updated manager
+                {
+                    type: "input",
+                    message: "Enter manager_id number for the employee's NEW manager",
+                    name: "managerID"
+                },
+            ]).then((response) => {
+                // UPDATE employee table with new manager ID for employee
+                connection.query(`UPDATE employee SET manager_id = ? WHERE id = ?`, [response.managerID, response.employeeID], function (error, results) {
+                    if (error) {
+                        console.log(error);
+                        connection.end();
+                    } else {
+                        console.log("\n");
+                        console.log("The employee manager has been updated");
+                        console.log("\n");
+                        promptUser();
+                    }
+                })
+            })
+        }
+    });
 }
 
 // FUNCTION TO DELETE DEPARTMENT
@@ -435,7 +507,7 @@ function deleteEmployee() {
                 },
             ]).then((response) => {
                 // DELETE employee FROM employee table
-                connection.query(`DELETE FROM employee WHERE ?`, {id: response.employeeID}, function (error, results) {
+                connection.query(`DELETE FROM employee WHERE ?`, { id: response.employeeID }, function (error, results) {
                     if (error) {
                         console.log(error);
                         connection.end();
@@ -447,6 +519,26 @@ function deleteEmployee() {
                     }
                 })
             })
+        }
+    });
+}
+
+// FUNCTION TO VIEW ALL DEPARTMENT BUDGETS
+function viewAllDepartmentBudgets() {
+    // JOIN employee, role, AND department TABLES TO COMBINE DATA AND RETURN budget information by departments
+    connection.query(`SELECT department.name AS department, SUM(role.salary) AS budget FROM role 
+                        INNER JOIN department ON department.id = role.department_id
+                        INNER JOIN employee ON role.id = employee.role_id
+                        GROUP BY department.name`, function (error, results) {
+        if (error) {
+            console.log(error);
+            connection.end();
+        } else {
+            console.log("\n");
+            // DISPLAY results for user
+            console.table(results);
+            console.log("\n");
+            promptUser();
         }
     });
 }
